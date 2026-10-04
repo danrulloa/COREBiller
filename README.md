@@ -14,6 +14,8 @@ Estado: MVP para piloto local. Hay casos implementados y probados, casos manuale
 
 Abre http://127.0.0.1:8765. Pulsa Crear mi Core para registrar tu espacio vacío y entrar como administrador. Si ya tienes un Core, selecciónalo y elige rol. También puedes usar `python app.py --port 8765`. Ctrl+C detiene el servidor. El lanzador detecta el Python incluido en Codex, después py y python.
 
+Si ejecutas el lanzador otra vez mientras esta copia está abierta, mostrará **COREBiller ya está funcionando** y su dirección. No inicia otro servidor ni modifica las bases. Si el puerto está ocupado por otra aplicación o por una copia de otra carpeta, muestra cómo elegir otro puerto: `.\Start-COREBiller.ps1 -Port 8766`. No cierra procesos automáticamente. Para reiniciar después de actualizar código, detén la instancia anterior con Ctrl+C en su terminal y vuelve a iniciar.
+
 ## Recorrido
 
 1. Administrador configura nombre, contacto, condiciones y permisos.
@@ -63,7 +65,7 @@ Para sustituir definitivamente el Excel hay que confirmar unidades, tarifas vige
 python -m unittest discover -s tests -v
 ```
 
-En esta distribución se ejecutan 22 pruebas operativas y se omite explícitamente 1 prueba del Excel privado, porque el libro no está incluido. Las pruebas operativas no necesitan openpyxl.
+En esta distribución se ejecutan 25 pruebas operativas y se omite explícitamente 1 prueba del Excel privado, porque el libro no está incluido. Las pruebas operativas no necesitan openpyxl.
 
 Para importar y verificar el Excel en privado, coloca MicroAccounts.xlsx en la raíz e instala la dependencia opcional:
 

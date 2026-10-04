@@ -93,7 +93,7 @@ Revisar no garantiza corrección de los datos: el operador confirma. Documentos/
 
 ## Evidencia técnica
 
-16 pruebas automatizadas en el entorno original: precios/copias inmutables, CSV transaccional, aislamiento/roles/CSRF; 96 precios contrastados contra Excel y checksum; redondeo/descuentos, doble saldo y doble límite; concurrencia; anulación/reasignación con reversión; pagos/requisitos; permisos/nombres; copia revisada y migración explícita no repetible; respaldo/recuperación. La distribución sin datos privados ejecuta 22 y omite explícitamente la prueba dependiente del Excel. Estas pruebas no certifican todos los casos de la transcripción.
+16 pruebas automatizadas en el entorno original: precios/copias inmutables, CSV transaccional, aislamiento/roles/CSRF; 96 precios contrastados contra Excel y checksum; redondeo/descuentos, doble saldo y doble límite; concurrencia; anulación/reasignación con reversión; pagos/requisitos; permisos/nombres; copia revisada y migración explícita no repetible; respaldo/recuperación. La distribución sin datos privados ejecuta 25 y omite explícitamente la prueba dependiente del Excel. Estas pruebas no certifican todos los casos de la transcripción.
 
 Scripts verify_excel_demo.py y verify_operational_demo.py dejan resultados en outputs/. El segundo comprueba presupuesto exacto, requisito de orden, ejecución a tarifa del libro y conservación de fuente. En navegador se verificaron consumo parcial de 0003 y pago separado.
 

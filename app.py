@@ -8,6 +8,11 @@ import json
 import secrets
 import sqlite3
 import socket
+import errno
+import hashlib
+import os
+import sys
+import urllib.request
 import time
 import operations
 from contextlib import contextmanager
@@ -132,6 +137,8 @@ class Handler(BaseHTTPRequestHandler):
         return result
 
     def do_GET(self):
+        if self.path == '/api/health':
+            return self.respond(200, {'application':'COREBiller', 'data_directory_id':directory_id(self.server.data_dir)})
         if self.path in ('/', '/app.js', '/operations.js', '/lifecycle.js', '/style.css'):
             filename = {'/': 'index.html', '/app.js': 'app.js', '/operations.js': 'operations.js', '/lifecycle.js': 'lifecycle.js', '/style.css': 'style.css'}[self.path]
             kind = {'/': 'text/html', '/app.js': 'text/javascript', '/operations.js': 'text/javascript', '/lifecycle.js': 'text/javascript', '/style.css': 'text/css'}[self.path]
@@ -482,21 +489,60 @@ class LocalServer(ThreadingHTTPServer):
         super().server_bind()
 
 
-def main():
+def directory_id(path):
+    return hashlib.sha256(os.path.normcase(str(path.resolve())).encode('utf-8')).hexdigest()
+
+
+def occupied_port_message(port, data_dir):
+    url = f'http://127.0.0.1:{port}'
+    try:
+        # A loopback health check must not use external proxy settings or follow redirects.
+        class NoRedirect(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, *args, **kwargs):
+                return None
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
+        with opener.open(url+'/api/health', timeout=2) as response:
+            health = json.loads(response.read(4096))
+        if isinstance(health, dict) and health.get('application') == 'COREBiller':
+            if health.get('data_directory_id') == directory_id(data_dir):
+                print(f'COREBiller ya está funcionando.\nAbre {url}\nPuedes usar la instancia existente; no necesitas iniciarla otra vez.', flush=True)
+                return 0
+            print(f'El puerto {port} está ocupado por COREBiller de otra carpeta.', file=sys.stderr)
+        else:
+            print(f'El puerto {port} está ocupado por otra aplicación.', file=sys.stderr)
+    except (OSError, ValueError):
+        print(f'El puerto {port} está ocupado. No se pudo identificar la aplicación que lo utiliza.', file=sys.stderr)
+    alternative = port+1 if port<65535 else port-1
+    print(f'Para usar esta copia, detén la instancia anterior con Ctrl+C en su terminal o elige otro puerto:\n.\\Start-COREBiller.ps1 -Port {alternative}', file=sys.stderr)
+    return 1
+
+
+def main(argv=None):
     parser = argparse.ArgumentParser(description='COREBiller local')
     parser.add_argument('--port', type=int, default=8765)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    if not 1 <= args.port <= 65535:
+        parser.error('El puerto debe estar entre 1 y 65535.')
     data_dir = ROOT / 'data'
-    bootstrap(data_dir)
-    server = LocalServer(('127.0.0.1', args.port), Handler)
-    server.data_dir = data_dir
-    server.db_path = next(data_dir.glob('*.sqlite3'))
-    print(f'COREBiller local · http://127.0.0.1:{args.port}\nDatos: {data_dir}\nSin credenciales. Selecciona o crea un Core y elige un rol.\nCtrl+C para detener.', flush=True)
     try:
+        server = LocalServer(('127.0.0.1', args.port), Handler)
+    except OSError as error:
+        if error.errno == errno.EADDRINUSE or getattr(error, 'winerror', None) == 10048:
+            return occupied_port_message(args.port, data_dir)
+        print(f'No se pudo iniciar COREBiller en el puerto {args.port}: {error}', file=sys.stderr)
+        return 1
+    try:
+        bootstrap(data_dir)
+        server.data_dir = data_dir
+        server.db_path = next(data_dir.glob('*.sqlite3'))
+        print(f'COREBiller local · http://127.0.0.1:{args.port}\nDatos: {data_dir}\nSin credenciales. Selecciona o crea un Core y elige un rol.\nCtrl+C para detener.', flush=True)
         server.serve_forever()
     except KeyboardInterrupt:
+        pass
+    finally:
         server.server_close()
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

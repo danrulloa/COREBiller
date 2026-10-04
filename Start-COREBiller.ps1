@@ -10,3 +10,4 @@ if (Test-Path -LiteralPath $bundlePython) {
 } else {
     throw 'Se necesita Python 3.10 o posterior. No se requieren paquetes adicionales.'
 }
+exit $LASTEXITCODE
