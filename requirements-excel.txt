@@ -1,0 +1,2 @@
+# Optional: needed only for importing/testing the private Excel workbook.
+openpyxl==3.1.5

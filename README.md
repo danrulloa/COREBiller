@@ -1,8 +1,8 @@
-# COREBiller local · MVP v2
+# COREBiller local · MVP v3
 
 Herramienta genérica para Core Facilities. Catálogo, clientes, cotizaciones, consumos, pagos, correcciones e informes; base SQLite independiente por Core. Funciona localmente sin internet, cuentas ni contraseñas. Servidor Python 3.10+ sin paquetes externos.
 
-Esta distribución comienza con espacios vacíos e incluye únicamente ejemplos ficticios. No contiene el Excel original, clientes reales, bases locales, transcripciones ni capturas. Consulta [cómo subir la carpeta a GitHub](docs/subir-a-github.md).
+Esta distribución crea únicamente EjemploCORE, con dos servicios y un cliente ficticios, sin cotizaciones. Cada Core que crees comienza completamente vacío. No contiene el Excel original, clientes reales, bases locales, transcripciones ni capturas. Consulta [cómo subir la carpeta a GitHub](docs/subir-a-github.md).
 
 Estado: MVP para piloto local. Hay casos implementados y probados, casos manuales y funciones pendientes; **no se ha validado una sustitución completa del Excel y de todos los procesos de la transcripción**. La matriz de cobertura detalla esos límites.
 
@@ -12,7 +12,7 @@ Estado: MVP para piloto local. Hay casos implementados y probados, casos manuale
 .\Start-COREBiller.ps1
 ```
 
-Abre http://127.0.0.1:8765. Selecciona o crea un Core y elige rol. También puedes usar `python app.py --port 8765`. Ctrl+C detiene el servidor. El lanzador detecta el Python incluido en Codex, después py y python.
+Abre http://127.0.0.1:8765. Pulsa Crear mi Core para registrar tu espacio vacío y entrar como administrador. Si ya tienes un Core, selecciónalo y elige rol. También puedes usar `python app.py --port 8765`. Ctrl+C detiene el servidor. El lanzador detecta el Python incluido en Codex, después py y python.
 
 ## Recorrido
 
@@ -29,7 +29,7 @@ Abre http://127.0.0.1:8765. Selecciona o crea un Core y elige rol. También pued
 
 ## Reglas
 
-Precios actualizados manualmente; cada propuesta conserva datos, condiciones, precios y requisitos. Sin borradores ni edición posterior: aceptación/rechazo son finales. Una ampliación requiere nueva cotización. La vigencia no cambia estados automáticamente.
+Precios actualizados manualmente. Las propuestas se pueden guardar como borrador, editar y emitir. Borrar un borrador lo retira de la lista y conserva la auditoría. Las emitidas no se borran ni editan: se cancelan con motivo, incluso si tienen movimientos. Cancelar bloquea nuevos consumos, conserva datos y saldos, y permite continuar el seguimiento administrativo; no registra devoluciones ni ajustes financieros. Una ampliación requiere nueva cotización. La vigencia no cambia estados automáticamente.
 
 Cada ítem lleva sus cantidades y dinero. El descuento global se distribuye conservando todos los centavos. La ejecución permite precio acordado neto de descuentos, catálogo actual del servicio ejecutado o precio personalizado con permiso y motivo.
 
@@ -47,7 +47,7 @@ Cualquiera puede elegir cualquier rol. La API aplica permisos, pero no verifica 
 
 CSV UTF-8, coma, encabezados `code,name,unit,category,price`, precio COP con punto decimal. Código existente actualiza; nombres únicos ignorando mayúsculas y espacios repetidos. Identifica variantes/tarifas en el nombre. Importación inválida revierte todos los cambios.
 
-Bases en data/, independientes por Core. MetCore, MicroCore y GeneCore son espacios iniciales vacíos; puedes crear otros. Los ejemplos ficticios se importan desde examples/. MicroCore · demostración Excel solo aparece si importas el archivo privado localmente. No se contacta automáticamente a los clientes.
+Bases en data/, independientes por Core. Solo EjemploCORE se crea al estrenar una instalación. Crea tu propio Core desde el selector; su catálogo, clientes y cotizaciones estarán vacíos. Los ejemplos ficticios se importan desde examples/. MicroCore · demostración Excel solo aparece si importas el archivo privado localmente. No se contacta automáticamente a los clientes.
 
 El catálogo importado distingue nombres por tarifa/año y conserva códigos, precios y originales. Las propuestas existentes mantienen su copia anterior. Migrar esquemas antiguos crea respaldo en data/backups/. Copia completa de todos los espacios: detén el servidor y copia data/. CSV no respalda cuentas. No uses SQLite en carpetas sincronizadas o compartidas para varios equipos.
 
@@ -63,7 +63,7 @@ Para sustituir definitivamente el Excel hay que confirmar unidades, tarifas vige
 python -m unittest discover -s tests -v
 ```
 
-En esta distribución se ejecutan 15 pruebas operativas y se omite explícitamente 1 prueba del Excel privado, porque el libro no está incluido. Las pruebas operativas no necesitan openpyxl.
+En esta distribución se ejecutan 22 pruebas operativas y se omite explícitamente 1 prueba del Excel privado, porque el libro no está incluido. Las pruebas operativas no necesitan openpyxl.
 
 Para importar y verificar el Excel en privado, coloca MicroAccounts.xlsx en la raíz e instala la dependencia opcional:
 
