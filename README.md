@@ -45,9 +45,23 @@ Administrador configura la matriz de los tres roles. Por defecto: Admin realiza 
 
 Cualquiera puede elegir cualquier rol. La API aplica permisos, pero no verifica identidad. El nombre es autodeclarado. Sesión local de ocho horas, perdida al reiniciar. Servidor únicamente en 127.0.0.1, con validación de origen y CSRF.
 
-## Catálogo y respaldo
+## Preparar el catálogo con Excel o Google Sheets
 
-CSV UTF-8, coma, encabezados `code,name,unit,category,price`, precio COP con punto decimal. Código existente actualiza; nombres únicos ignorando mayúsculas y espacios repetidos. Identifica variantes/tarifas en el nombre. Importación inválida revierte todos los cambios.
+No necesitas conocimientos técnicos. Sigue estos pasos dentro de COREBiller:
+
+1. Entra al Core que vas a configurar y selecciona el rol **Admin**.
+2. Abre **Servicios y tarifas** y pulsa **Importar CSV**.
+3. Pulsa **Descargar plantilla CSV**. Se descargará un archivo que puedes abrir con Excel o Google Sheets.
+4. En la plantilla, conserva la primera fila y agrega tus servicios debajo: un servicio o tarifa por fila. Llena todas las columnas; en **precio** escribe solo el número, sin `$` ni `COP`.
+5. Guarda o descarga una copia en formato **CSV UTF-8**. Si el programa pregunta por el separador, elige coma.
+6. Vuelve a COREBiller, selecciona ese archivo y pulsa **Validar e importar**. Si algo no cumple el formato, la aplicación avisará y no aplicará una carga incompleta.
+7. Revisa **Servicios y tarifas**. Después ya puedes registrar clientes y crear cotizaciones.
+
+El catálogo debe tener códigos diferentes para identificar los servicios. Si importas otra vez un código existente, COREBiller actualizará ese servicio. Los nombres también deben ser distintos; agrega una aclaración al nombre cuando cambien el año, la modalidad o el alcance. Las cotizaciones ya emitidas conservan el precio con que fueron creadas.
+
+Puedes guardar el archivo en OneDrive o Google Drive si esa carpeta está sincronizada con este computador. Aun así, debes volver a importarlo cuando cambies los precios: COREBiller guarda una copia local y no se actualiza solo. Un enlace web a un Excel o Google Sheet privado no conecta la aplicación automáticamente. Lee la [guía detallada del catálogo y archivos en la nube](docs/configurar-catalogo.md) si necesitas más detalle.
+
+## Datos y respaldo
 
 Bases en data/, independientes por Core. Solo EjemploCORE se crea al estrenar una instalación. Crea tu propio Core desde el selector; su catálogo, clientes y cotizaciones estarán vacíos. Los ejemplos ficticios se importan desde examples/. MicroCore · demostración Excel solo aparece si importas el archivo privado localmente. No se contacta automáticamente a los clientes.
 

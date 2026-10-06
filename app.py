@@ -160,6 +160,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/api/health':
             return self.respond(200, {'application':'COREBiller', 'data_directory_id':directory_id(self.server.data_dir)})
+        if self.path == '/docs/configurar-catalogo.md':
+            return self.respond(200, (ROOT / 'docs' / 'configurar-catalogo.md').read_bytes(), 'text/markdown; charset=utf-8')
         if self.path in ('/', '/app.js', '/operations.js', '/lifecycle.js', '/style.css'):
             filename = {'/': 'index.html', '/app.js': 'app.js', '/operations.js': 'operations.js', '/lifecycle.js': 'lifecycle.js', '/style.css': 'style.css'}[self.path]
             kind = {'/': 'text/html', '/app.js': 'text/javascript', '/operations.js': 'text/javascript', '/lifecycle.js': 'text/javascript', '/style.css': 'text/css'}[self.path]
@@ -205,6 +207,11 @@ class Handler(BaseHTTPRequestHandler):
                     writer.writerow([r['code'], r['name'], r['unit'], r['category'], f"{r['price']/100:.2f}"])
                 return self.respond(200, out.getvalue().encode('utf-8-sig'), 'text/csv; charset=utf-8',
                                     {'Content-Disposition': 'attachment; filename="servicios.csv"'})
+            if self.path == '/api/services-template.csv':
+                out = io.StringIO(newline='')
+                csv.writer(out).writerow(['code', 'name', 'unit', 'category', 'price'])
+                return self.respond(200, out.getvalue().encode('utf-8-sig'), 'text/csv; charset=utf-8',
+                                    {'Content-Disposition': 'attachment; filename="COREBiller-plantilla-catalogo.csv"'})
         self.respond(404, {'error': 'Ruta inexistente.'})
 
     def do_POST(self):
