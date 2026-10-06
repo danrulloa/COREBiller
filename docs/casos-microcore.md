@@ -42,7 +42,7 @@ Una orden, factura, traslado o recibo es referencia externa, no pago automático
 | Importe exacto 1.750.000 / 1.752.500; 20:05–21:36 | Precio personalizado y cantidad 1, sin cambiar catálogo para obtener el importe |
 | Precio fijo/actual/personalizado; 17:12, 28:25 | Operativo en consumos; acordado incluye descuentos |
 | Observaciones correo/PDF; 17:12 | Campos separados |
-| PDF/condiciones especiales; 31:52 | Impresión conjunta o por ítem; HTML editable, proyecto/responsable. Sin plantilla Word oficial ni firma digital |
+| PDF/condiciones especiales; 31:52 | Impresión conjunta o por ítem con márgenes y logo PNG configurable por Core; HTML editable, proyecto/responsable. Sin plantilla Word oficial ni firma digital |
 | Documento/consecutivo por ítem; Apps Script | Parcial: páginas separadas de una misma propuesta, sin contratos/consecutivos independientes automáticos |
 | Información/cotización/muestras/recibo; 15:05, 22:04, 24:03–24:58 | Borrador .eml editable; envío, adjuntos, formato y trámite institucional manuales |
 | Aceptación/rechazo; 6:29, 26:15 | Operativo. Los borradores se editan y borran de la lista; las emitidas/aceptadas/rechazadas pueden cancelarse con motivo conservando movimientos |

@@ -18,11 +18,11 @@ Si ejecutas el lanzador otra vez mientras esta copia está abierta, mostrará **
 
 ## Recorrido
 
-1. Administrador configura nombre, contacto, condiciones y permisos.
+1. Administrador configura nombre, contacto, condiciones, permisos y logo PNG del Core.
 2. Crea servicios de nombre y código únicos, unidad, tarifa/precio y requisito de inicio. Los CSV en examples son ficticios.
 3. Registra o edita clientes y su requisito de inicio particular.
 4. Emite cotización con proyecto, responsable, muestras, cantidades, precios personalizados justificados, descuentos por ítem/global y observaciones separadas para PDF y correo.
-5. Imprime PDF conjunto o por ítem; descarga HTML editable o borrador .eml. Adjunta documentos oficiales y envía el correo manualmente.
+5. Imprime PDF conjunto o por ítem con márgenes y el logo configurado para ese Core; descarga HTML editable o borrador .eml. Adjunta documentos oficiales y envía el correo manualmente.
 6. Registra aceptación. Abre Cuentas y consumos, registra documentos/pagos y ejecución.
 7. Un consumo reduce cantidad y presupuesto del ítem. Un pago reduce saldo por cobrar. Se bloquean excesos y falta de requisitos.
 8. Corrige/reasigna o anula movimientos con motivo: el original permanece en historial.
@@ -51,6 +51,8 @@ CSV UTF-8, coma, encabezados `code,name,unit,category,price`, precio COP con pun
 
 Bases en data/, independientes por Core. Solo EjemploCORE se crea al estrenar una instalación. Crea tu propio Core desde el selector; su catálogo, clientes y cotizaciones estarán vacíos. Los ejemplos ficticios se importan desde examples/. MicroCore · demostración Excel solo aparece si importas el archivo privado localmente. No se contacta automáticamente a los clientes.
 
+El logo se configura en Administración. Se aceptan archivos PNG de hasta 300 KB y 4000 × 1500 píxeles. Se guarda dentro de la base local del Core y queda capturado en las cotizaciones emitidas; no se envía a servicios externos.
+
 El catálogo importado distingue nombres por tarifa/año y conserva códigos, precios y originales. Las propuestas existentes mantienen su copia anterior. Migrar esquemas antiguos crea respaldo en data/backups/. Copia completa de todos los espacios: detén el servidor y copia data/. CSV no respalda cuentas. No uses SQLite en carpetas sincronizadas o compartidas para varios equipos.
 
 ## Excel y sustitución
@@ -65,7 +67,7 @@ Para sustituir definitivamente el Excel hay que confirmar unidades, tarifas vige
 python -m unittest discover -s tests -v
 ```
 
-En esta distribución se ejecutan 25 pruebas operativas y se omite explícitamente 1 prueba del Excel privado, porque el libro no está incluido. Las pruebas operativas no necesitan openpyxl.
+En esta distribución se ejecutan 26 pruebas operativas y se omite explícitamente 1 prueba del Excel privado, porque el libro no está incluido. Las pruebas operativas no necesitan openpyxl.
 
 Para importar y verificar el Excel en privado, coloca MicroAccounts.xlsx en la raíz e instala la dependencia opcional:
 

@@ -44,6 +44,27 @@ def required(data, key, limit=500):
     return value
 
 
+def clean_logo(value):
+    """Accept a small PNG data URL for local Core branding."""
+    if value == '':
+        return ''
+    prefix = 'data:image/png;base64,'
+    if not isinstance(value, str) or not value.startswith(prefix) or len(value) > 410000:
+        raise ValueError('El logo debe ser un PNG de máximo 300 KB.')
+    try:
+        raw = base64.b64decode(value[len(prefix):], validate=True)
+    except (ValueError, base64.binascii.Error):
+        raise ValueError('El archivo del logo no es un PNG válido.')
+    if (len(raw) > 300000 or len(raw) < 24 or raw[:8] != b'\x89PNG\r\n\x1a\n'
+            or raw[12:16] != b'IHDR'):
+        raise ValueError('El archivo del logo no es un PNG válido o supera 300 KB.')
+    width = int.from_bytes(raw[16:20], 'big')
+    height = int.from_bytes(raw[20:24], 'big')
+    if not width or not height or width > 4000 or height > 1500:
+        raise ValueError('El logo debe tener máximo 4000 × 1500 píxeles.')
+    return value
+
+
 @contextmanager
 def connect(path):
     db = sqlite3.connect(path)
@@ -89,7 +110,7 @@ def initialize(path, core):
           kind TEXT NOT NULL, sheet TEXT NOT NULL, row_number INTEGER NOT NULL,
           reference TEXT NOT NULL, payload TEXT NOT NULL);
         ''')
-        defaults = {'name': core, 'contact': '', 'terms': 'Cotización sujeta a confirmación de disponibilidad. Precios expresados en COP. Definir las condiciones comerciales oficiales antes de emitir propuestas reales.'}
+        defaults = {'name': core, 'contact': '', 'logo_data': '', 'terms': 'Cotización sujeta a confirmación de disponibilidad. Precios expresados en COP. Definir las condiciones comerciales oficiales antes de emitir propuestas reales.'}
         for key, value in defaults.items():
             db.execute('INSERT OR IGNORE INTO settings VALUES (?,?)', (key, value))
         operations.migrate(db)
@@ -264,6 +285,8 @@ class Handler(BaseHTTPRequestHandler):
                 previous = dict(row) if row else None
             elif self.path in ('/api/settings', '/api/permissions'):
                 previous = dict(db.execute('SELECT key,value FROM settings').fetchall())
+                if self.path == '/api/settings':
+                    previous['logo_configured'] = bool(previous.pop('logo_data', ''))
             if self.path == '/api/restore':
                 name = required(data, 'name', 100)
                 if any(c['name'].casefold() == name.casefold() for c in self.cores()):
@@ -297,6 +320,9 @@ class Handler(BaseHTTPRequestHandler):
                 for key in ('name', 'contact', 'terms'):
                     value = required(data, key, 4000) if key != 'contact' else str(data.get(key, ''))[:500]
                     db.execute('UPDATE settings SET value=? WHERE key=?', (value, key))
+                if 'logo_data' in data:
+                    db.execute('INSERT OR REPLACE INTO settings(key,value) VALUES (?,?)',
+                               ('logo_data', clean_logo(data['logo_data'])))
             elif self.path == '/api/clients':
                 values = (required(data, 'name', 150), required(data, 'institution', 200),
                           str(data.get('email', '')).strip()[:200], str(data.get('identification', '')).strip()[:100],
@@ -422,6 +448,7 @@ class Handler(BaseHTTPRequestHandler):
                 number = f"BORRADOR-{quote_id:04d}" if status == 'Borrador' else f"{session['core'].upper()}-{date.today().year}-{quote_id:04d}"
                 db.execute('UPDATE quotes SET number=? WHERE id=?', (number, quote_id))
                 context = {key: str(data.get(key, ''))[:2000] for key in ('project', 'project_code', 'responsible', 'samples', 'email_notes', 'signature', 'discount_reason')}
+                context['core_logo'] = settings.get('logo_data', '')
                 context['discount_percent'] = str(Decimal(discount_pct)/100)
                 context['line_discount_percents'] = [str(i.get('discount', 0)) for i in source_items]
                 if source:
@@ -457,7 +484,10 @@ class Handler(BaseHTTPRequestHandler):
                 db.execute('UPDATE quotes SET status=? WHERE id=?', (status, int(data['id'])))
             else:
                 return self.respond(404, {'error': 'Ruta inexistente.'})
-            detail = json.dumps({'route':self.path, 'data':{k:v for k,v in data.items() if k not in ('file','csv')},
+            audit_data = {k:v for k,v in data.items() if k not in ('file','csv','logo_data')}
+            if 'logo_data' in data:
+                audit_data['logo_configured'] = bool(data['logo_data'])
+            detail = json.dumps({'route':self.path, 'data':audit_data,
                                  'previous':previous}, ensure_ascii=False)
             db.execute('INSERT INTO audit(at,actor,action) VALUES (?,?,?)',
                        (time.strftime('%Y-%m-%d %H:%M:%S'), user['username'], detail))

@@ -1,4 +1,5 @@
 import http.cookiejar
+import base64
 import json
 import tempfile
 import threading
@@ -89,6 +90,24 @@ class MVPTests(unittest.TestCase):
             self.assertEqual(status,403 if role=='consulta' else 200)
         self.assertEqual(self.client.request('clients', {'name':'X','institution':'Y'}, csrf=False)[0],403)
         self.assertEqual(Client(self.server.server_port).request('state')[0],401)
+
+    def test_core_logo_is_saved_validated_and_snapshotted_without_audit_payload(self):
+        self.seed()
+        png = b'\x89PNG\r\n\x1a\n' + b'\x00\x00\x00\rIHDR' + (640).to_bytes(4,'big') + (240).to_bytes(4,'big') + b'\x08\x06\x00\x00\x00'
+        logo = 'data:image/png;base64,' + base64.b64encode(png).decode('ascii')
+        status, _ = self.client.request('settings', {'name':'MetCore','contact':'Contacto','terms':'Condiciones','logo_data':logo})
+        self.assertEqual(status,200)
+        self.assertEqual(self.client.request('state')[1]['settings']['logo_data'],logo)
+        self.assertEqual(self.quote()[0],200)
+        quote = self.client.request('state')[1]['quotes'][0]
+        self.assertEqual(json.loads(quote['context'])['core_logo'],logo)
+        audit = next(json.loads(row['action']) for row in self.client.request('state')[1]['audit']
+                     if json.loads(row['action'])['route']=='/api/settings')
+        self.assertTrue(audit['data']['logo_configured'])
+        self.assertNotIn('data:image/png',json.dumps(audit))
+        bad = self.client.request('settings', {'name':'MetCore','contact':'Contacto','terms':'Condiciones','logo_data':'data:image/png;base64,SGVsbG8='})
+        self.assertEqual(bad[0],400)
+        self.assertEqual(self.client.request('state')[1]['settings']['logo_data'],logo)
 
     def test_import_rollback_and_upsert(self):
         self.seed()
