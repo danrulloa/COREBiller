@@ -53,7 +53,7 @@ showQuote=function(id){
   }else if(q.status!=='Cancelada'&&permit('quotes')){
     actions.insertAdjacentHTML('beforeend','<button class="ghost" id="cancel-quote">Cancelar cotización</button>');
     $('#cancel-quote').onclick=()=>{
-      modal('Cancelar '+q.number,`<form id="cancel-quote-form">${field('reason','Motivo de cancelación')}<p>Se impedirán nuevos consumos. Los movimientos, pagos y saldos existentes se conservan; cancelar no registra devoluciones ni ajustes financieros.</p><button>Confirmar cancelación</button></form>`);
+      modal('Cancelar '+q.number,`<form id="cancel-quote-form">${field('reason','Motivo de cancelación')}<p>Se impedirán nuevos servicios ejecutados. Los movimientos, pagos y saldos existentes se conservan; cancelar no registra devoluciones ni ajustes financieros.</p><button>Confirmar cancelación</button></form>`);
       bindForm('#cancel-quote-form','status',{id,status:'Cancelada'});
     };
   }
@@ -64,13 +64,13 @@ showAccount=function(id){
   const q=state.quotes.find(q=>q.id===id);
   if(q.status==='Cancelada'){
     $('#modal-body [data-consume]')?.remove();
-    $('#modal-body').insertAdjacentHTML('afterbegin',`<div class="notice">Cuenta cancelada: ${esc(JSON.parse(q.context).cancel_reason)}. Sin nuevos consumos; se conserva el seguimiento financiero.</div>`);
+    $('#modal-body').insertAdjacentHTML('afterbegin',`<div class="notice">Cotización cancelada: ${esc(JSON.parse(q.context).cancel_reason)}. Sin nuevos servicios ejecutados; se conserva el seguimiento financiero.</div>`);
   }
 };
 
 render=function(){
   previousRender();
-  if(state.settings.is_demo==='true')$('#content').insertAdjacentHTML('afterbegin','<p class="notice">EjemploCORE contiene datos ficticios. Para tu trabajo, usa Cambiar Core / rol → Crear otro Core: empezarás con catálogo, clientes y cotizaciones vacíos.</p>');
+  if(state.settings.is_demo==='true')$('#content').insertAdjacentHTML('afterbegin','<p class="notice">EjemploCORE contiene datos ficticios y sin validez comercial. Abre la cotización de ejemplo para ver la diferencia entre cliente/contacto solicitante y responsable del proyecto, y cómo registrar un servicio realizado y un pago. Para tu trabajo, crea otro Core: empezará vacío.</p>');
   if(view==='accounts'){
     const accounts=state.quotes.filter(q=>['Aceptada','Cancelada'].includes(q.status));
     document.querySelectorAll('#content tbody tr').forEach((row,index)=>{

@@ -44,10 +44,19 @@ class LifecycleTests(unittest.TestCase):
             with app.connect(root/'ejemplocore.sqlite3') as db:
                 self.assertEqual(db.execute("SELECT value FROM settings WHERE key='name'").fetchone()[0], 'EjemploCORE')
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM clients').fetchone()[0],1)
-                self.assertEqual(db.execute('SELECT COUNT(*) FROM quotes').fetchone()[0],0)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM quotes').fetchone()[0],1)
+                quote=db.execute('SELECT * FROM quotes').fetchone()
+                self.assertEqual(quote['status'],'Aceptada')
+                self.assertIn('Dr. Andrés Gómez',quote['context'])
+                demo_account=app.operations.account(db,quote)
+                self.assertEqual((demo_account['consumed_amount'],demo_account['remaining_amount']),
+                                 (5000000,15000000))
+                self.assertEqual((demo_account['paid'],demo_account['receivable']),
+                                 (8000000,12000000))
             app.bootstrap(root)
             with app.connect(root/'ejemplocore.sqlite3') as db:
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM services').fetchone()[0],2)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM quotes').fetchone()[0],1)
         self.client.open(new_core='Mi Core')
         state=self.client.request('state')[1]
         self.assertEqual((state['clients'],state['services'],state['quotes']),([],[],[]))

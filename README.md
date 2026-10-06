@@ -1,8 +1,8 @@
 # COREBiller local · MVP v3
 
-Herramienta genérica para Core Facilities. Catálogo, clientes, cotizaciones, consumos, pagos, correcciones e informes; base SQLite independiente por Core. Funciona localmente sin internet, cuentas ni contraseñas. Servidor Python 3.10+ sin paquetes externos.
+Herramienta genérica para Core Facilities. Catálogo, clientes, cotizaciones, registro de servicios ejecutados, pagos, correcciones e informes; base SQLite independiente por Core. Funciona localmente sin internet, cuentas ni contraseñas. Servidor Python 3.10+ sin paquetes externos.
 
-Esta distribución crea únicamente EjemploCORE, con dos servicios y un cliente ficticios, sin cotizaciones. Cada Core que crees comienza completamente vacío. No contiene el Excel original, clientes reales, bases locales, transcripciones ni capturas. Consulta [cómo subir la carpeta a GitHub](docs/subir-a-github.md).
+Esta distribución crea EjemploCORE con dos servicios, un cliente ficticio y una cotización aceptada que muestra un servicio realizado y un pago parcial. No tiene validez comercial. Cada Core que crees comienza completamente vacío. No contiene el Excel original, clientes reales, bases locales, transcripciones ni capturas. Consulta [cómo subir la carpeta a GitHub](docs/subir-a-github.md).
 
 Estado: MVP para piloto local. Hay casos implementados y probados, casos manuales y funciones pendientes; **no se ha validado una sustitución completa del Excel y de todos los procesos de la transcripción**. La matriz de cobertura detalla esos límites.
 
@@ -18,22 +18,22 @@ Si ejecutas el lanzador otra vez mientras esta copia está abierta, mostrará **
 
 ## Recorrido
 
-1. Administrador configura nombre, contacto, condiciones, permisos y logo PNG del Core.
+1. Administrador configura nombre, contacto, condiciones, permisos y logo PNG del Core. EjemploCORE ya incluye un recorrido ficticio.
 2. Crea servicios de nombre y código únicos, unidad, tarifa/precio y requisito de inicio. Los CSV en examples son ficticios.
 3. Registra o edita clientes y su requisito de inicio particular.
 4. Emite cotización con proyecto, responsable, muestras, cantidades, precios personalizados justificados, descuentos por ítem/global y observaciones separadas para PDF y correo.
 5. Imprime PDF conjunto o por ítem con márgenes y el logo configurado para ese Core; descarga HTML editable o borrador .eml. Adjunta documentos oficiales y envía el correo manualmente.
-6. Registra aceptación. Abre Cuentas y consumos, registra documentos/pagos y ejecución.
-7. Un consumo reduce cantidad y presupuesto del ítem. Un pago reduce saldo por cobrar. Se bloquean excesos y falta de requisitos.
+6. Registra aceptación. En Seguimiento de servicios registra documentos/pagos y servicios ejecutados.
+7. Cada servicio ejecutado reduce la cantidad contratada y el presupuesto de su ítem. Un pago reduce el saldo por cobrar. Se bloquean excesos y falta de requisitos.
 8. Corrige/reasigna o anula movimientos con motivo: el original permanece en historial.
 9. Consulta informes anuales por institución, servicio o analista y exporta CSV.
 10. Descarga una copia SQLite y recupérala en un Core nuevo desde Administración (copias v2 hasta 14 MB).
 
 ## Reglas
 
-Precios actualizados manualmente. Las propuestas se pueden guardar como borrador, editar y emitir. Borrar un borrador lo retira de la lista y conserva la auditoría. Las emitidas no se borran ni editan: se cancelan con motivo, incluso si tienen movimientos. Cancelar bloquea nuevos consumos, conserva datos y saldos, y permite continuar el seguimiento administrativo; no registra devoluciones ni ajustes financieros. Una ampliación requiere nueva cotización. La vigencia no cambia estados automáticamente.
+Precios actualizados manualmente. Las propuestas se pueden guardar como borrador, editar y emitir. Borrar un borrador lo retira de la lista y conserva la auditoría. Las emitidas no se borran ni editan: se cancelan con motivo, incluso si tienen movimientos. Cancelar bloquea nuevos servicios ejecutados, conserva datos y saldos, y permite continuar el seguimiento administrativo; no registra devoluciones ni ajustes financieros. Una ampliación requiere nueva cotización. La vigencia no cambia estados automáticamente.
 
-Cada ítem lleva sus cantidades y dinero. El descuento global se distribuye conservando todos los centavos. La ejecución permite precio acordado neto de descuentos, catálogo actual del servicio ejecutado o precio personalizado con permiso y motivo.
+Cada ítem lleva sus cantidades y dinero. El descuento global se distribuye conservando todos los centavos. La ejecución permite precio acordado neto de descuentos, catálogo actual del servicio ejecutado o precio personalizado con permiso y motivo. COREBiller registra trabajo contratado y ejecutado; no gestiona inventario de suministros.
 
 Inicio: ítem > cliente > servicio. Opciones: ninguno, pago completo, algún pago/anticipo, orden, traslado o autorización. Facturas, órdenes y traslados no cuentan como pago. Se registran referencias y notas, sin almacenar adjuntos ni realizar trámites externos.
 

@@ -447,7 +447,7 @@ class Handler(BaseHTTPRequestHandler):
                     quote_id = cur.lastrowid
                 number = f"BORRADOR-{quote_id:04d}" if status == 'Borrador' else f"{session['core'].upper()}-{date.today().year}-{quote_id:04d}"
                 db.execute('UPDATE quotes SET number=? WHERE id=?', (number, quote_id))
-                context = {key: str(data.get(key, ''))[:2000] for key in ('project', 'project_code', 'responsible', 'samples', 'email_notes', 'signature', 'discount_reason')}
+                context = {key: str(data.get(key, ''))[:2000] for key in ('project', 'project_code', 'responsible', 'samples', 'email_notes', 'discount_reason')}
                 context['core_logo'] = settings.get('logo_data', '')
                 context['discount_percent'] = str(Decimal(discount_pct)/100)
                 context['line_discount_percents'] = [str(i.get('discount', 0)) for i in source_items]
@@ -494,8 +494,54 @@ class Handler(BaseHTTPRequestHandler):
         self.respond(200, {'ok': True})
 
 
+def seed_example_quote(db):
+    """Make the example Core demonstrate the quote-to-service-and-payment flow."""
+    is_demo = db.execute("SELECT value FROM settings WHERE key='is_demo'").fetchone()
+    marker = 'Ejemplo ficticio para demostrar el seguimiento.'
+    if (not is_demo or is_demo[0] != 'true'
+            or db.execute('SELECT 1 FROM quotes WHERE notes LIKE ?', (marker + '%',)).fetchone()):
+        return
+    client = db.execute("SELECT * FROM clients WHERE identification='DEMO-001'").fetchone()
+    service = db.execute("SELECT * FROM services WHERE code='DEMO-01'").fetchone()
+    if not client or not service:
+        return
+    now = date.today()
+    quantity = Decimal('4')
+    amount = int(quantity * service['price'])
+    item = {**dict(service), 'quantity': str(quantity), 'amount': amount,
+            'net_amount': amount, 'line_discount': 0, 'price_reason': ''}
+    context = {'project': 'Caracterización de muestras de ejemplo',
+               'project_code': f'DEMO-{now.year}-01', 'responsible': 'Dr. Andrés Gómez',
+               'samples': '4 muestras ficticias', 'email_notes': '',
+               'discount_reason': '', 'discount_percent': '0',
+               'line_discount_percents': ['0'], 'core_logo': '',
+               'demo_walkthrough': True}
+    cur = db.execute('''INSERT INTO quotes(client,items,subtotal,discount,total,notes,terms,core_name,
+        contact,created,valid_until,status,author,context) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
+        (json.dumps(dict(client), ensure_ascii=False), json.dumps([item], ensure_ascii=False),
+         amount, 0, amount, marker + ' Sin validez comercial.',
+         db.execute("SELECT value FROM settings WHERE key='terms'").fetchone()[0],
+         'EjemploCORE', 'EjemploCORE · contacto@example.org', now.isoformat(),
+         (now + timedelta(days=30)).isoformat(), 'Aceptada', 'Administrador EjemploCORE',
+         json.dumps(context, ensure_ascii=False)))
+    quote_id = cur.lastrowid
+    db.execute('UPDATE quotes SET number=? WHERE id=?',
+               (f'EJEMPLOCORE-{now.year}-{quote_id:04d}', quote_id))
+    execution = {'date': now.isoformat(), 'analyst': 'Dra. Laura Pérez',
+                 'author': 'Administrador EjemploCORE', 'service_id': service['id'],
+                 'service_name': service['name'], 'executed_quantity': '1',
+                 'executed_unit': service['unit'], 'samples': 'Muestra de demostración 01',
+                 'duration': '1 hora', 'notes': 'Registro ficticio de ejemplo.',
+                 'price_basis': 'acordado', 'requirement': 'ninguno'}
+    db.execute('INSERT INTO consumptions(quote_id,line_index,quantity,amount,payload) VALUES (?,?,?,?,?)',
+               (quote_id, 0, '1', service['price'], json.dumps(execution, ensure_ascii=False)))
+    db.execute('''INSERT INTO administration(quote_id,kind,amount,date,reference,notes)
+        VALUES (?,?,?,?,?,?)''', (quote_id, 'pago', 8000000, now.isoformat(), 'DEMO-PAGO-01',
+        'Pago parcial ficticio de demostración.'))
+
+
 def bootstrap(data_dir):
-    """Seed only a new installation. User-created Core databases always start empty."""
+    """Keep the example walkthrough available; user-created Core databases stay empty."""
     data_dir.mkdir(parents=True, exist_ok=True)
     if not any(data_dir.glob('*.sqlite3')):
         path = data_dir / 'ejemplocore.sqlite3'
@@ -508,6 +554,8 @@ def bootstrap(data_dir):
             db.execute("INSERT INTO clients(name,institution,email,identification) VALUES ('Cliente de ejemplo','Institución ficticia','cliente@example.org','DEMO-001')")
     for path in data_dir.glob('*.sqlite3'):
         initialize(path, path.stem)
+        with connect(path) as db:
+            seed_example_quote(db)
 
 
 class LocalServer(ThreadingHTTPServer):
