@@ -1,93 +1,137 @@
-# COREBiller local · MVP v3
+# COREBiller
 
-Herramienta genérica para Core Facilities. Catálogo, clientes, cotizaciones, registro de servicios ejecutados, pagos, correcciones e informes; base SQLite independiente por Core. Funciona localmente sin internet, cuentas ni contraseñas. Servidor Python 3.10+ sin paquetes externos.
+COREBiller ayuda a un Core Facility a organizar su catálogo de servicios, clientes, cotizaciones y seguimiento de servicios realizados. Se ejecuta en un solo computador y guarda allí los datos. No necesitas una cuenta, contraseña ni conexión a internet para usarlo después de descargarlo.
 
-Esta distribución crea EjemploCORE con dos servicios, un cliente ficticio y una cotización aceptada que muestra un servicio realizado y un pago parcial. No tiene validez comercial. Cada Core que crees comienza completamente vacío. No contiene el Excel original, clientes reales, bases locales, transcripciones ni capturas. Consulta [cómo subir la carpeta a GitHub](docs/subir-a-github.md).
+Esta guía está escrita para personas usuarias, no para desarrolladores. No necesitas saber qué es Git: puedes descargar el proyecto como un archivo ZIP desde GitHub.
 
-Estado: MVP para piloto local. Hay casos implementados y probados, casos manuales y funciones pendientes; **no se ha validado una sustitución completa del Excel y de todos los procesos de la transcripción**. La matriz de cobertura detalla esos límites.
+## Antes de empezar
 
-## Iniciar
+- Un computador con Windows o macOS.
+- Python 3.10 o posterior. En Windows, el lanzador intenta encontrar Python por ti. En Mac, necesitas tenerlo instalado.
+- Excel o Google Sheets para preparar el catálogo, si quieres importar tus servicios desde una hoja.
+
+COREBiller es un MVP para pruebas piloto. **No se ha validado como reemplazo completo del Excel ni de todos los procesos de MicroCore.** EjemploCORE incluye información inventada para mostrar el recorrido; no tiene validez comercial. Los Core que crees comienzan vacíos.
+
+## 1. Descargar COREBiller desde GitHub
+
+Haz esto una sola vez para instalarlo. Para usar COREBiller en los días siguientes, ve directamente a «Abrir COREBiller cada vez que lo uses».
+
+1. Abre el repositorio: [github.com/danrulloa/COREBiller](https://github.com/danrulloa/COREBiller).
+2. En la página del proyecto, pulsa el botón verde **Code** y luego **Download ZIP**.
+3. Cuando termine la descarga, busca el archivo ZIP en la carpeta **Descargas** y descomprímelo. En Windows, haz clic derecho y elige **Extraer todo**. En Mac, haz doble clic.
+4. Mueve la carpeta resultante a un lugar fácil de encontrar, por ejemplo **Documentos**. No ejecutes el programa dentro del archivo ZIP.
+
+No tienes que instalar Git ni copiar comandos de Git para usar la aplicación.
+
+## 2. Abrir COREBiller por primera vez
+
+La aplicación se inicia desde una ventana de terminal. La terminal es una ventana donde se escribe una instrucción corta para abrir el programa; no necesitas programar.
+
+### En Windows
+
+1. Abre el **Explorador de archivos** y entra a la carpeta descomprimida `COREBiller-main`.
+2. Haz clic derecho en un espacio vacío dentro de esa carpeta y elige **Abrir en Terminal**. En algunas versiones de Windows aparece **Abrir ventana de PowerShell aquí**.
+3. Escribe esta línea y pulsa **Enter**:
+
+   ```powershell
+   .\Start-COREBiller.ps1
+   ```
+
+4. Deja abierta la ventana de Terminal. Cuando aparezca una dirección que comienza por `http://127.0.0.1:8765`, abre esa dirección en Chrome, Edge o Firefox.
+
+Si Windows informa que no permite ejecutar el archivo, en esa misma ventana prueba:
 
 ```powershell
-.\Start-COREBiller.ps1
+powershell -ExecutionPolicy Bypass -File .\Start-COREBiller.ps1
 ```
 
-Abre http://127.0.0.1:8765. Pulsa Crear mi Core para registrar tu espacio vacío y entrar como administrador. Si ya tienes un Core, selecciónalo y elige rol. También puedes usar `python app.py --port 8765`. Ctrl+C detiene el servidor. El lanzador detecta el Python incluido en Codex, después py y python.
+### En Mac
 
-Si ejecutas el lanzador otra vez mientras esta copia está abierta, mostrará **COREBiller ya está funcionando** y su dirección. No inicia otro servidor ni modifica las bases. Si el puerto está ocupado por otra aplicación o por una copia de otra carpeta, muestra cómo elegir otro puerto: `.\Start-COREBiller.ps1 -Port 8766`. No cierra procesos automáticamente. Para reiniciar después de actualizar código, detén la instancia anterior con Ctrl+C en su terminal y vuelve a iniciar.
+1. Abre **Terminal**. Puedes encontrarla con Spotlight: pulsa `Command + Espacio`, escribe `Terminal` y pulsa `Enter`.
+2. Comprueba que tengas Python 3.10 o posterior: escribe `python3 --version` y pulsa **Enter**. Si no aparece una versión o es anterior a 3.10, instala Python desde [python.org/downloads](https://www.python.org/downloads/macos/).
+3. En Terminal, escribe `cd ` (incluye un espacio al final, pero todavía no pulses Enter).
+4. Desde Finder, arrastra la carpeta descomprimida `COREBiller-main` a la ventana de Terminal. Pulsa **Enter**.
+5. Escribe `python3 app.py` y pulsa **Enter**.
+6. Deja abierta Terminal. Cuando aparezca `http://127.0.0.1:8765`, abre esa dirección en Safari, Chrome o Firefox.
 
-## Recorrido
+COREBiller no necesita instalar paquetes adicionales.
 
-1. Administrador configura nombre, contacto, condiciones, permisos y logo PNG del Core. EjemploCORE ya incluye un recorrido ficticio.
-2. Crea servicios de nombre y código únicos, unidad, tarifa/precio y requisito de inicio. Los CSV en examples son ficticios.
-3. Registra o edita clientes y su requisito de inicio particular.
-4. Emite cotización con proyecto, responsable, muestras, cantidades, precios personalizados justificados, descuentos por ítem/global y observaciones separadas para PDF y correo.
-5. Imprime PDF conjunto o por ítem con márgenes y el logo configurado para ese Core; descarga HTML editable o borrador .eml. Adjunta documentos oficiales y envía el correo manualmente.
-6. Registra aceptación. En Seguimiento de servicios registra documentos/pagos y servicios ejecutados.
-7. Cada servicio ejecutado reduce la cantidad contratada y el presupuesto de su ítem. Un pago reduce el saldo por cobrar. Se bloquean excesos y falta de requisitos.
-8. Corrige/reasigna o anula movimientos con motivo: el original permanece en historial.
-9. Consulta informes anuales por institución, servicio o analista y exporta CSV.
-10. Descarga una copia SQLite y recupérala en un Core nuevo desde Administración (copias v2 hasta 14 MB).
+### Crear tu Core
 
-## Reglas
+Al abrir la página por primera vez, elige **Crear mi Core**, escribe el nombre del Core y continúa. Eso crea un espacio vacío para ese Core. También puedes abrir **EjemploCORE** para probar la aplicación con información ficticia.
 
-Precios actualizados manualmente. Las propuestas se pueden guardar como borrador, editar y emitir. Borrar un borrador lo retira de la lista y conserva la auditoría. Las emitidas no se borran ni editan: se cancelan con motivo, incluso si tienen movimientos. Cancelar bloquea nuevos servicios ejecutados, conserva datos y saldos, y permite continuar el seguimiento administrativo; no registra devoluciones ni ajustes financieros. Una ampliación requiere nueva cotización. La vigencia no cambia estados automáticamente.
+COREBiller no comprueba quién eres: el nombre y el rol que eliges son locales y autodeclarados. Por eso esta versión es solo para uso en el computador donde se inicia; no la publiques como portal ni la compartas en una red.
 
-Cada ítem lleva sus cantidades y dinero. El descuento global se distribuye conservando todos los centavos. La ejecución permite precio acordado neto de descuentos, catálogo actual del servicio ejecutado o precio personalizado con permiso y motivo. COREBiller registra trabajo contratado y ejecutado; no gestiona inventario de suministros.
+## 3. Preparar el catálogo de servicios
 
-Inicio: ítem > cliente > servicio. Opciones: ninguno, pago completo, algún pago/anticipo, orden, traslado o autorización. Facturas, órdenes y traslados no cuentan como pago. Se registran referencias y notas, sin almacenar adjuntos ni realizar trámites externos.
+Cada Core tiene su propio catálogo. Puedes registrar los servicios uno por uno en **Servicios y tarifas**, o importar varios desde la plantilla CSV.
 
-En presupuestos multitécnica, cantidad contractual y real ejecutada son campos separados. Contrata un paquete de cantidad 1 y precio exacto; el operador confirma la fracción contractual consumida. No hay equivalencias automáticas entre horas/muestras/paquetes ni transferencia de dinero entre ítems.
-
-## Roles sin autenticación
-
-Administrador configura la matriz de los tres roles. Por defecto: Admin realiza todo; Cotizador maneja clientes, propuestas, ejecución y administración; Consulta lee. Todos tienen permiso de aprobar precios/descuentos, aunque Consulta no emite por defecto. Puede configurarse un rol para ejecutar sin cotizar.
-
-Cualquiera puede elegir cualquier rol. La API aplica permisos, pero no verifica identidad. El nombre es autodeclarado. Sesión local de ocho horas, perdida al reiniciar. Servidor únicamente en 127.0.0.1, con validación de origen y CSRF.
-
-## Preparar el catálogo con Excel o Google Sheets
-
-No necesitas conocimientos técnicos. Sigue estos pasos dentro de COREBiller:
-
-1. Entra al Core que vas a configurar y selecciona el rol **Admin**.
+1. En COREBiller, selecciona el Core que quieres configurar y el rol **Admin**.
 2. Abre **Servicios y tarifas** y pulsa **Importar CSV**.
-3. Pulsa **Descargar plantilla CSV**. Se descargará un archivo que puedes abrir con Excel o Google Sheets.
-4. En la plantilla, conserva la primera fila y agrega tus servicios debajo: un servicio o tarifa por fila. Llena todas las columnas; en **precio** escribe solo el número, sin `$` ni `COP`.
-5. Guarda o descarga una copia en formato **CSV UTF-8**. Si el programa pregunta por el separador, elige coma.
-6. Vuelve a COREBiller, selecciona ese archivo y pulsa **Validar e importar**. Si algo no cumple el formato, la aplicación avisará y no aplicará una carga incompleta.
-7. Revisa **Servicios y tarifas**. Después ya puedes registrar clientes y crear cotizaciones.
+3. Pulsa **Descargar plantilla CSV**. El archivo se descargará en la carpeta de descargas de tu navegador.
+4. Abre el CSV con Excel o impórtalo en Google Sheets. Conserva la primera fila, que contiene los títulos de las columnas.
+5. Agrega una fila por cada servicio y tarifa. Llena todas las columnas:
 
-El catálogo debe tener códigos diferentes para identificar los servicios. Si importas otra vez un código existente, COREBiller actualizará ese servicio. Los nombres también deben ser distintos; agrega una aclaración al nombre cuando cambien el año, la modalidad o el alcance. Las cotizaciones ya emitidas conservan el precio con que fueron creadas.
+   - `code`: código único, por ejemplo `MET-001`.
+   - `name`: nombre claro del servicio. Si hay variantes, aclara el año, modalidad o alcance en el nombre.
+   - `unit`: unidad que se cotiza, por ejemplo `muestra`, `hora` o `corrida`.
+   - `category`: clasificación o tipo de tarifa, por ejemplo `Tarifa 2026`.
+   - `price`: precio en pesos colombianos como número, por ejemplo `125000`. No escribas `$`, `COP` ni puntos para separar miles.
 
-Puedes guardar el archivo en OneDrive o Google Drive si esa carpeta está sincronizada con este computador. Aun así, debes volver a importarlo cuando cambies los precios: COREBiller guarda una copia local y no se actualiza solo. Un enlace web a un Excel o Google Sheet privado no conecta la aplicación automáticamente. Lee la [guía detallada del catálogo y archivos en la nube](docs/configurar-catalogo.md) si necesitas más detalle.
+6. Guarda o descarga el archivo como **CSV UTF-8**. En Excel, usa **Guardar como** y elige **CSV UTF-8 (delimitado por comas)**. En Google Sheets, elige **Archivo → Descargar → Valores separados por comas (.csv)**.
+7. Vuelve a COREBiller, selecciona ese archivo y pulsa **Validar e importar**.
+8. Comprueba que los servicios y los precios aparezcan correctamente antes de crear cotizaciones.
 
-## Datos y respaldo
+Si la aplicación encuentra datos incorrectos o nombres duplicados, no importa una parte del catálogo: informa el error para que puedas corregir el archivo y volverlo a intentar. Si importas un código que ya existe, se actualiza ese servicio. Un servicio que ya no esté en el archivo no se elimina. Las cotizaciones anteriores conservan los precios con los que fueron emitidas.
 
-Bases en data/, independientes por Core. Solo EjemploCORE se crea al estrenar una instalación. Crea tu propio Core desde el selector; su catálogo, clientes y cotizaciones estarán vacíos. Los ejemplos ficticios se importan desde examples/. MicroCore · demostración Excel solo aparece si importas el archivo privado localmente. No se contacta automáticamente a los clientes.
+La [guía detallada del catálogo y archivos en la nube](docs/configurar-catalogo.md) explica las columnas y reglas con más detalle.
 
-El logo se configura en Administración. Se aceptan archivos PNG de hasta 300 KB y 4000 × 1500 píxeles. Se guarda dentro de la base local del Core y queda capturado en las cotizaciones emitidas; no se envía a servicios externos.
+### Usar un archivo guardado en la nube
 
-El catálogo importado distingue nombres por tarifa/año y conserva códigos, precios y originales. Las propuestas existentes mantienen su copia anterior. Migrar esquemas antiguos crea respaldo en data/backups/. Copia completa de todos los espacios: detén el servidor y copia data/. CSV no respalda cuentas. No uses SQLite en carpetas sincronizadas o compartidas para varios equipos.
+Puedes guardar el CSV en una carpeta de OneDrive o Google Drive que esté sincronizada con este computador. Cuando cambies precios, selecciona e importa otra vez el CSV desde COREBiller.
 
-## Excel y sustitución
+COREBiller no queda conectado automáticamente a un enlace de Excel Online o Google Sheets: cambiar la hoja en internet no actualiza la aplicación. La base de datos de COREBiller se guarda localmente en este computador.
 
-Datos del Excel permite consulta, copia revisada y migración explícita de cotizaciones/consumos por fila. No se corrigen valores ambiguos por inferencia. Consulta [cobertura y aceptación](docs/casos-microcore.md).
+## 4. Configurar el Core y empezar a trabajar
 
-Para sustituir definitivamente el Excel hay que confirmar unidades, tarifas vigentes, saldos de apertura y datos dudosos con MicroCore. Correos, adjuntos y trámites institucionales son manuales. Sin plantilla Word oficial, firma digital, formulario público, portal de resultados, autenticación ni alojamiento compartido. Impresión por ítem conserva una propuesta; no crea consecutivos independientes.
+Un recorrido habitual es:
 
-## Verificar
+1. En **Administración**, configura el nombre, los datos de contacto, las condiciones comerciales y el logo PNG del Core.
+2. En **Servicios y tarifas**, revisa o completa los servicios y sus precios.
+3. En **Clientes**, registra las personas e instituciones que aparecerán en las cotizaciones.
+4. Crea una cotización, revísala y emítela. Desde su vista puedes imprimirla o guardarla como PDF.
+5. Registra la aceptación y usa **Seguimiento de servicios** para anotar los servicios ejecutados, pagos y documentos relacionados.
+6. Usa los informes para revisar la actividad y exportar CSV.
+
+Los cambios de precio se hacen manualmente. Cambiar el catálogo no modifica cotizaciones anteriores. COREBiller guarda datos, pero no envía correos, pagos, facturas ni trámites institucionales por ti.
+
+## 5. Abrir COREBiller cada vez que lo uses
+
+Después de descargar y configurar COREBiller, no tienes que volver a descargar el proyecto para el uso diario:
+
+1. Abre la carpeta `COREBiller-main` que guardaste en tu computador.
+2. Abre una ventana de Terminal dentro de esa carpeta, usando los pasos de Windows o Mac descritos arriba.
+3. En Windows, ejecuta `.\Start-COREBiller.ps1` y pulsa **Enter**. En Mac, ejecuta `python3 app.py` y pulsa **Enter**.
+4. Abre `http://127.0.0.1:8765` en el navegador.
+5. Selecciona el Core y el rol que vas a usar.
+6. Al terminar, vuelve a la ventana de Terminal y pulsa `Ctrl + C`. Puedes cerrar la ventana después.
+
+**Deja abierta la ventana de Terminal mientras uses COREBiller.** Si la cierras, la aplicación se detiene. La próxima vez que la inicies, tus datos seguirán allí: se guardan en la carpeta `data` del proyecto. No borres esa carpeta. Para hacer una copia de seguridad, usa la opción de respaldo en Administración.
+
+Si ves un mensaje de que el puerto está ocupado, probablemente COREBiller ya está abierto en otra ventana. Vuelve a esa ventana y usa la dirección que muestra; no abras una segunda instancia.
+
+## Privacidad y límites
+
+Los datos se guardan en bases locales, una por Core, dentro de `data/`. No subas esa carpeta a GitHub ni la pongas en una carpeta sincronizada para usar simultáneamente desde varios computadores. Una hoja CSV en OneDrive o Google Drive puede servir para preparar el catálogo, pero la base de COREBiller no es compartida ni sincronizada entre equipos.
+
+COREBiller todavía no incluye inicio de sesión con cuenta institucional, autenticación Microsoft/Google, trabajo simultáneo en varios equipos, firma digital, portal público ni conexión automática con Excel Online o Google Sheets. Revisa [los casos de MicroCore y su cobertura](docs/casos-microcore.md) antes de usar el MVP como sustituto de procesos existentes.
+
+## Información para quien mantiene el proyecto (opcional)
+
+COREBiller usa Python 3.10 o posterior y la biblioteca estándar; no necesita paquetes externos para arrancar. Para ejecutar las pruebas operativas:
 
 ```powershell
 python -m unittest discover -s tests -v
 ```
 
-En esta distribución se ejecutan 26 pruebas operativas y se omite explícitamente 1 prueba del Excel privado, porque el libro no está incluido. Las pruebas operativas no necesitan openpyxl.
-
-Para importar y verificar el Excel en privado, coloca MicroAccounts.xlsx en la raíz e instala la dependencia opcional:
-
-```powershell
-python -m pip install -r requirements-excel.txt
-python scripts/import_microaccounts.py
-```
-
-Después inicia el servidor y ejecuta `python scripts/verify_excel_demo.py` y `python scripts/verify_operational_demo.py`. Estos scripts crean ejemplos en la base microcore-excel; requieren el archivo y base locales y no deben ejecutarse sobre cuentas de producción. El original no se modifica. Bases y resultados quedan excluidos de Git.
+La prueba que necesita el libro privado `MicroAccounts.xlsx` se omite si el archivo no está presente. Ese libro y las bases de datos no están incluidos en GitHub. No publiques datos reales ni resultados privados.
